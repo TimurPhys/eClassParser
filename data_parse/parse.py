@@ -14,7 +14,7 @@ from selenium.webdriver.chrome.options import Options
 
 def init_driver():
     options = Options()
-    options.add_argument("--headless")
+    options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")  # Обязательно для Docker
     options.add_argument("--disable-dev-shm-usage")  # Избегаем проблем с памятью
 

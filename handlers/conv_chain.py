@@ -290,9 +290,7 @@ async def process_data_request(update: Update, context: ContextTypes.DEFAULT_TYP
                 return MENU
             except Exception as e:
                 context.user_data["enter_success"] = False
-                await update.message.reply_text(get_translation('request_error', context.user_data['language'],
-                    error=str(e)
-                ))
+                await update.message.reply_text(f"❌ An error occured: {str(e)}.")
                 return ConversationHandler.END
         else:
             await update.message.reply_text(get_translation("enterValid", context.user_data['language']))
