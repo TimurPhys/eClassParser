@@ -42,11 +42,9 @@ def getProfiles(username, password):
 
         time.sleep(1)
 
-        driver.get('https://my.e-klase.lv/Family/UserLoginProfile')
+        wait.until(EC.url_contains('https://my.e-klase.lv/Family/UserLoginProfile'))
 
-        profilesContainer = wait.until(
-            EC.presence_of_element_located((By.CLASS_NAME, 'modal-options'))
-        )
+        profilesContainer = wait.until(lambda d: len(EC.presence_of_element_located((By.CLASS_NAME, 'modal-options'))) > 0)
         # profilesContainer = driver.find_element(By.CLASS_NAME, 'modal-options')
         all_small_elements = profilesContainer.find_elements(By.CSS_SELECTOR, '.modal-options-choice small')
 
