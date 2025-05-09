@@ -1,9 +1,0 @@
-# Исключить окружение, IDE и лишние папки
-../.venv/
-.idea/
-__pycache__/
-*.pyc
-*.log
-Lib/
-Scripts/
-share/
