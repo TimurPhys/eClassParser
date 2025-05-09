@@ -25,7 +25,7 @@ def init_driver():
 def getProfiles(username, password):
     driver = init_driver()
     profilesDict = {}
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 30)
 
     try:
         wait.until(EC.url_contains("https://www.e-klase.lv"))
@@ -73,7 +73,7 @@ def getUserPage(profileNumber, period, username, password):
     wait = WebDriverWait(driver, 10)
 
     try:
-        wait.until(EC.url_contains("https://www.e-klase.lv/"))
+        wait.until(EC.url_contains("https://www.e-klase.lv"))
 
         submitButton = wait.until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "button.btn-success[data-btn='submit']"))
