@@ -28,35 +28,46 @@ def getProfiles(username, password):
     profilesDict = {}
     wait = WebDriverWait(driver, 10)
 
-    wait.until(EC.url_contains("https://www.e-klase.lv/"))
+    try:
+        wait.until(EC.url_contains("https://www.e-klase.lv/"))
 
 
-    submitButton = wait.until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "button.btn-success[data-btn='submit']"))
-    )
-    # submitButton = driver.find_element(By.CSS_SELECTOR, "button.btn-success[data-btn='submit']")
+        submitButton = wait.until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "button.btn-success[data-btn='submit']"))
+        )
+        # submitButton = driver.find_element(By.CSS_SELECTOR, "button.btn-success[data-btn='submit']")
 
-    driver.execute_script(f"document.getElementsByName('UserName')[0].value = '{username}';")
-    driver.execute_script(f"document.getElementsByName('Password')[0].value = '{password}';")
-    driver.execute_script("arguments[0].click();", submitButton)
+        driver.execute_script(f"document.getElementsByName('UserName')[0].value = '{username}';")
+        driver.execute_script(f"document.getElementsByName('Password')[0].value = '{password}';")
+        driver.execute_script("arguments[0].click();", submitButton)
 
-    time.sleep(1)
+        time.sleep(1)
 
-    driver.get('https://my.e-klase.lv/Family/UserLoginProfile')
+        driver.get('https://my.e-klase.lv/Family/UserLoginProfile')
 
-    profilesContainer = wait.until(
-        EC.presence_of_element_located((By.CLASS_NAME, 'modal-options'))
-    )
-    # profilesContainer = driver.find_element(By.CLASS_NAME, 'modal-options')
-    all_small_elements = profilesContainer.find_elements(By.CSS_SELECTOR, '.modal-options-choice small')
+        profilesContainer = wait.until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'modal-options'))
+        )
+        # profilesContainer = driver.find_element(By.CLASS_NAME, 'modal-options')
+        all_small_elements = profilesContainer.find_elements(By.CSS_SELECTOR, '.modal-options-choice small')
 
-    for i in range(1, len(all_small_elements)+1):
-        profilesDict[i] = {
-            'profileName': profilesContainer.find_elements(By.CLASS_NAME, 'modal-options-title')[i-1].text,
-            'institution': profilesContainer.find_elements(By.CSS_SELECTOR, '.modal-options-choice small')[i-1].text
-        }
-    driver.quit()
-    return profilesDict.copy()
+        for i in range(1, len(all_small_elements)+1):
+            profilesDict[i] = {
+                'profileName': profilesContainer.find_elements(By.CLASS_NAME, 'modal-options-title')[i-1].text,
+                'institution': profilesContainer.find_elements(By.CSS_SELECTOR, '.modal-options-choice small')[i-1].text
+            }
+        return profilesDict.copy()
+    except TimeoutException as e:
+        print(f"⏳ TimeoutException: {str(e)}")
+        traceback.print_exc()
+        return None
+
+    except (NoSuchElementException, IndexError, WebDriverException) as e:
+        print(f"❌ Ошибка при получении страницы пользователя: {e}")
+        traceback.print_exc()
+        return None
+    finally:
+        driver.quit()
 
 def getUserPage(profileNumber, period, username, password):
     driver = init_driver()
@@ -92,13 +103,13 @@ def getUserPage(profileNumber, period, username, password):
 
         if 1 <= today.month <= 7:
             if period == 1:
-                wait.until(EC.url_contains("SelectedPeriod=01.09.2024"))
+                wait.until(EC.url_contains(f"https://my.e-klase.lv/Family/ReportPupilMarks/Get?SelectedPeriod=01.09.2024.%2331.12.2024.&PeriodStart=03.05.2025.&PeriodEnd=03.05.2025.&IncludeWeightedAverages=true&IncludeNonAttendances=true&IncludePupilBehaviourRecords=true&DiscTypeObligatory=true&DiscTypeObligatory=false&DiscTypeInterest=true&DiscTypeInterest=false&DiscTypeFacultative=true&DiscTypeFacultative=false&DiscTypeExtendedDay=true&DiscTypeExtendedDay=false"))
             elif period == 2:
-                wait.until(EC.url_contains("SelectedPeriod=01.01.2025"))
+                wait.until(EC.url_contains(f"https://my.e-klase.lv/Family/ReportPupilMarks/Get?SelectedPeriod=01.01.2025.%23{formatted_date}.&PeriodStart=03.05.2025.&PeriodEnd=03.05.2025.&IncludeWeightedAverages=true&IncludeNonAttendances=true&IncludePupilBehaviourRecords=true&DiscTypeObligatory=true&DiscTypeObligatory=false&DiscTypeInterest=true&DiscTypeInterest=false&DiscTypeFacultative=true&DiscTypeFacultative=false&DiscTypeExtendedDay=true&DiscTypeExtendedDay=false"))
             elif period == 3:
-                wait.until(EC.url_contains("ReportPupilMarks/Get"))
+                wait.until(EC.url_contains("https://my.e-klase.lv/Family/ReportPupilMarks/Get"))
         elif 9 <= today.month <= 12:
-            wait.until(EC.url_contains("ReportPupilMarks/Get"))
+            wait.until(EC.url_contains("https://my.e-klase.lv/Family/ReportPupilMarks/Get"))
 
         time.sleep(1)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
