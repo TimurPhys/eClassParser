@@ -101,9 +101,9 @@ def getUserPage(profileNumber, period, username, password):
     driver.quit()
     return soup
 
-profiles = getProfiles("070307-20802", "w6naudas")
-
-page = getUserPage(1, 3, "070307-20802", "w6naudas")
+# profiles = getProfiles("070307-20802", "w6naudas")
+#
+# page = getUserPage(1, 3, "070307-20802", "w6naudas")
 
 def getEachProfileInfo(profiles, lang = "en"):
     answer = ""
@@ -230,7 +230,7 @@ def getFormattedStatistics(userPage):
             percentMarks = []
     return subjects
 
-statistics = getFormattedStatistics(page)
+# statistics = getFormattedStatistics(page)
 
 def getMainMarksStatistics(stats, lang = "en", goodMarkBorder = 5):
     answer = ''
@@ -299,4 +299,4 @@ def getPassesStatistics(stats, lang = "en"):
         return False
     return answer
 
-print(getPassesStatistics(statistics))
+# print(getPassesStatistics(statistics))
