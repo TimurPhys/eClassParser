@@ -1,4 +1,3 @@
-from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -44,7 +43,8 @@ def getProfiles(username, password):
 
         wait.until(EC.url_contains('https://my.e-klase.lv/Family/UserLoginProfile'))
 
-        profilesContainer = wait.until(lambda d: len(EC.presence_of_element_located((By.CLASS_NAME, 'modal-options'))) > 0)
+        wait.until(lambda d: len(d.presence_of_element_located((By.CLASS_NAME, 'modal-options'))) > 0)
+        profilesContainer = driver.find_elements(By.CLASS_NAME, 'modal-options')
         # profilesContainer = driver.find_element(By.CLASS_NAME, 'modal-options')
         all_small_elements = profilesContainer.find_elements(By.CSS_SELECTOR, '.modal-options-choice small')
 
