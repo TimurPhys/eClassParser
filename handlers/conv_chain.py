@@ -222,29 +222,34 @@ async def getCertainProfile(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     if context.user_data.get('expired'):
         await update.message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
-    profiles = getProfiles(context.user_data['logs']['username'], context.user_data['logs']['password'])
-    language = context.user_data.get('language', 'en')
-    context.user_data['profiles'] = profiles
 
-    # Создаем красивый текст с профилями
-    profiles_text = f"{get_translation('available_profiles', language)}\n\n"
-    profiles_text += getEachProfileInfo(profiles, language)
-    #
-    # Создаем клавиатуру с нумерованными кнопками
-    profilesKeyboard = [[KeyboardButton(f"{get_translation('profile', language)} {i}")] for i in range(1, len(profiles) + 1)]
-    profilesKeyboard.append([
-        KeyboardButton(f"{get_translation('cancel', language)}")  # Кнопка отмены
-    ])
-    await update.message.reply_text(
-        f"{get_translation('select_profile_prompt', language)}\n\n"
-        f"{profiles_text}",
-        reply_markup=ReplyKeyboardMarkup(
-            keyboard=profilesKeyboard,  # Явно указываем параметр keyboard
-            resize_keyboard=True,
-            one_time_keyboard=True
-        ),
-        parse_mode="HTML"
-    )
+    try:
+        profiles = getProfiles(context.user_data['logs']['username'], context.user_data['logs']['password'])
+        language = context.user_data.get('language', 'en')
+        context.user_data['profiles'] = profiles
+
+        # Создаем красивый текст с профилями
+        profiles_text = f"{get_translation('available_profiles', language)}\n\n"
+        profiles_text += getEachProfileInfo(profiles, language)
+        #
+        # Создаем клавиатуру с нумерованными кнопками
+        profilesKeyboard = [[KeyboardButton(f"{get_translation('profile', language)} {i}")] for i in range(1, len(profiles) + 1)]
+        profilesKeyboard.append([
+            KeyboardButton(f"{get_translation('cancel', language)}")  # Кнопка отмены
+        ])
+        await update.message.reply_text(
+            f"{get_translation('select_profile_prompt', language)}\n\n"
+            f"{profiles_text}",
+            reply_markup=ReplyKeyboardMarkup(
+                keyboard=profilesKeyboard,  # Явно указываем параметр keyboard
+                resize_keyboard=True,
+                one_time_keyboard=True
+            ),
+            parse_mode="HTML"
+        )
+    except Exception as e:
+        await update.message.reply_text(f"❌ An error occured: {str(e)}.")
+        return ConversationHandler.END  # или верни нужное состояние
     return REQUEST
 
 
@@ -285,7 +290,6 @@ async def process_data_request(update: Update, context: ContextTypes.DEFAULT_TYP
                 return MENU
             except Exception as e:
                 context.user_data["enter_success"] = False
-                logging.error(f"Ошибка: {str(e)}\n{traceback.format_exc()}")
                 await update.message.reply_text(get_translation('request_error', context.user_data['language'],
                     error=str(e)
                 ))
