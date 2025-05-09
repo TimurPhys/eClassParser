@@ -24,9 +24,10 @@ def init_driver():
 def getProfiles(username, password):
     driver = init_driver()
     profilesDict = {}
+    wait = WebDriverWait(driver, 10)
 
-    driver.get("https://www.e-klase.lv/")
-    wait = WebDriverWait(driver, 15)
+    wait.until(EC.url_contains("https://www.e-klase.lv/"))
+
 
     submitButton = wait.until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "button.btn-success[data-btn='submit']"))
@@ -57,9 +58,9 @@ def getProfiles(username, password):
 
 def getUserPage(profileNumber, period, username, password):
     driver = init_driver()
+    wait = WebDriverWait(driver, 10)
 
-    driver.get("https://www.e-klase.lv/")
-    wait = WebDriverWait(driver, 15)
+    wait.until(EC.url_contains("https://www.e-klase.lv/"))
 
 
     submitButton = wait.until(
@@ -72,7 +73,7 @@ def getUserPage(profileNumber, period, username, password):
 
     time.sleep(1)
 
-    driver.get('https://my.e-klase.lv/Family/UserLoginProfile')
+    wait.until(EC.url_contains('https://my.e-klase.lv/Family/UserLoginProfile'))
 
     enterButtons = wait.until(
         EC.presence_of_all_elements_located((By.NAME, "pf_id"))
@@ -87,13 +88,13 @@ def getUserPage(profileNumber, period, username, password):
 
     if(today.month >= 1 and today.month <= 7):
         if(period == 1):
-            driver.get(f"https://my.e-klase.lv/Family/ReportPupilMarks/Get?SelectedPeriod=01.09.2024.%2331.12.2024.&PeriodStart=03.05.2025.&PeriodEnd=03.05.2025.&IncludeWeightedAverages=true&IncludeNonAttendances=true&IncludePupilBehaviourRecords=true&DiscTypeObligatory=true&DiscTypeObligatory=false&DiscTypeInterest=true&DiscTypeInterest=false&DiscTypeFacultative=true&DiscTypeFacultative=false&DiscTypeExtendedDay=true&DiscTypeExtendedDay=false")
+            wait.until(EC.url_contains(f"https://my.e-klase.lv/Family/ReportPupilMarks/Get?SelectedPeriod=01.09.2024.%2331.12.2024.&PeriodStart=03.05.2025.&PeriodEnd=03.05.2025.&IncludeWeightedAverages=true&IncludeNonAttendances=true&IncludePupilBehaviourRecords=true&DiscTypeObligatory=true&DiscTypeObligatory=false&DiscTypeInterest=true&DiscTypeInterest=false&DiscTypeFacultative=true&DiscTypeFacultative=false&DiscTypeExtendedDay=true&DiscTypeExtendedDay=false"))
         elif(period == 2):
-            driver.get(f"https://my.e-klase.lv/Family/ReportPupilMarks/Get?SelectedPeriod=01.01.2025.%23{formatted_date}.&PeriodStart=03.05.2025.&PeriodEnd=03.05.2025.&IncludeWeightedAverages=true&IncludeNonAttendances=true&IncludePupilBehaviourRecords=true&DiscTypeObligatory=true&DiscTypeObligatory=false&DiscTypeInterest=true&DiscTypeInterest=false&DiscTypeFacultative=true&DiscTypeFacultative=false&DiscTypeExtendedDay=true&DiscTypeExtendedDay=false")
+            wait.until(EC.url_contains(f"https://my.e-klase.lv/Family/ReportPupilMarks/Get?SelectedPeriod=01.01.2025.%23{formatted_date}.&PeriodStart=03.05.2025.&PeriodEnd=03.05.2025.&IncludeWeightedAverages=true&IncludeNonAttendances=true&IncludePupilBehaviourRecords=true&DiscTypeObligatory=true&DiscTypeObligatory=false&DiscTypeInterest=true&DiscTypeInterest=false&DiscTypeFacultative=true&DiscTypeFacultative=false&DiscTypeExtendedDay=true&DiscTypeExtendedDay=false"))
         elif(period == 3): # Весь год
-            driver.get("https://my.e-klase.lv/Family/ReportPupilMarks/Get")
+            wait.until(EC.url_contains("https://my.e-klase.lv/Family/ReportPupilMarks/Get"))
     if(today.month <= 12 and today.month >= 9):
-        driver.get("https://my.e-klase.lv/Family/ReportPupilMarks/Get")
+        wait.until(EC.url_contains("https://my.e-klase.lv/Family/ReportPupilMarks/Get"))
 
     time.sleep(1)
 
