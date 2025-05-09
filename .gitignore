@@ -1,0 +1,14 @@
+# Исключить venv и IDE
+.venv/
+.idea/
+
+# Исключить всё, что не нужно
+../.venv/Lib/
+Scripts/
+share/
+
+# Исключить временные/кэш-файлы
+__pycache__/
+*.pyc
+*.log
+.env
