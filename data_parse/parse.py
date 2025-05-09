@@ -31,7 +31,6 @@ def getProfiles(username, password):
     try:
         wait.until(EC.url_contains("https://www.e-klase.lv/"))
 
-
         submitButton = wait.until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "button.btn-success[data-btn='submit']"))
         )
