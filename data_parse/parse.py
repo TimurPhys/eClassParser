@@ -28,7 +28,7 @@ def getProfiles(username, password):
     wait = WebDriverWait(driver, 10)
 
     try:
-        wait.until(EC.url_contains("https://www.e-klase.lv/"))
+        wait.until(EC.url_contains("https://www.e-klase.lv"))
 
         submitButton = wait.until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "button.btn-success[data-btn='submit']"))
@@ -42,9 +42,11 @@ def getProfiles(username, password):
         time.sleep(1)
 
         wait.until(EC.url_contains('https://my.e-klase.lv/Family/UserLoginProfile'))
-
+        print('flag1')
         wait.until(lambda d: len(d.presence_of_element_located((By.CLASS_NAME, 'modal-options'))) > 0)
-        profilesContainer = driver.find_elements(By.CLASS_NAME, 'modal-options')
+        print('flag2')
+        profilesContainer = driver.find_element(By.CLASS_NAME, 'modal-options')
+        print('flag3')
         # profilesContainer = driver.find_element(By.CLASS_NAME, 'modal-options')
         all_small_elements = profilesContainer.find_elements(By.CSS_SELECTOR, '.modal-options-choice small')
 
