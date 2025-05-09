@@ -26,7 +26,7 @@ def getProfiles(username, password):
     profilesDict = {}
 
     driver.get("https://www.e-klase.lv/")
-    wait = WebDriverWait(driver, 5)
+    wait = WebDriverWait(driver, 15)
 
     submitButton = wait.until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "button.btn-success[data-btn='submit']"))
@@ -59,7 +59,7 @@ def getUserPage(profileNumber, period, username, password):
     driver = init_driver()
 
     driver.get("https://www.e-klase.lv/")
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 15)
 
 
     submitButton = wait.until(
