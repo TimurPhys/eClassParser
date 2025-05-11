@@ -1,5 +1,6 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
-from telegram.ext import ContextTypes, ConversationHandler, Application, CallbackQueryHandler, CommandHandler, MessageHandler, filters
+from telegram._update import Update
+from telegram._replykeyboardremove import ReplyKeyboardRemove
+from telegram.ext import ContextTypes, ConversationHandler
 from handlers.conv_chain import SETTINGS
 from localization import get_translation
 

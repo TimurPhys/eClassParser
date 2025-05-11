@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from data_parse.parse import getAverageMainScore, getAveragePercentScore
 from localization import get_translation
 
-def build_plot(data, what, order = False, lang = 'en', good_mark = 4, good_percent_mark = 50):
+def build_plot(data, what, session_id, order = False, lang = 'en', good_mark = 4, good_percent_mark = 50):
     # what = "main_grades" или "percent_grades"
     avg_line = None
     def sortFunc(e):
@@ -76,5 +76,5 @@ def build_plot(data, what, order = False, lang = 'en', good_mark = 4, good_perce
     subjects = []
     colors = []
     avg_line = None
-    plt.savefig(what)
+    plt.savefig(f"{what}_{session_id}")
     plt.close()

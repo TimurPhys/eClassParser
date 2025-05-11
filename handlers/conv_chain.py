@@ -1,12 +1,8 @@
-from telegram import (
-    Update,
-    ReplyKeyboardMarkup,
-    ReplyKeyboardRemove,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    KeyboardButton,
-    BotCommand,
-)
+from telegram._update import Update
+from telegram._replykeyboardremove import ReplyKeyboardRemove
+from telegram._replykeyboardmarkup import ReplyKeyboardMarkup
+from telegram._keyboardbutton import KeyboardButton
+from telegram._botcommand import BotCommand
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -19,7 +15,7 @@ from telegram.ext import (
     JobQueue
 )
 import asyncio
-from data_parse.parse import getProfiles, getUserPage, getStudentInfo, getEachProfileInfo, getFormattedStatistics
+from data_parse.parse import getProfiles, getUserPage, getStudentInfo, getEachProfileInfo, getFormattedStatistics, twoFactorAuth
 from handlers.analysis_commands import handle_button_click
 from localization import get_translation
 from handlers.analysis_commands import get_stats_keyboard
@@ -39,7 +35,7 @@ start_commands = [
 #         commands.remove(BotCommand(name, commandText))
 #     return commands
 
-LANGUAGE, START, SETTINGS, CHOICE, AUTO, USERNAME, PASSWORD, DATA, REQUEST, MENU, END = range(11)
+LANGUAGE, START, SETTINGS, CHOICE, AUTO, USERNAME, PASSWORD, DATA, TWO_FACTOR, REQUEST, MENU, END = range(12)
 from handlers.settings import (
    good_mark_handler,
    good_percent_handler,
@@ -224,7 +220,10 @@ async def getCertainProfile(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         return ConversationHandler.END
 
     try:
-        profiles = getProfiles(context.user_data['logs']['username'], context.user_data['logs']['password'])
+        profiles = getProfiles(context.user_data['logs']['username'], context.user_data['logs']['password'], session_id=update.effective_user.id)
+        if profiles == False:
+            await update.message.reply_text(get_translation("2FA", context.user_data.get('language')))
+            return TWO_FACTOR
         language = context.user_data.get('language', 'en')
         context.user_data['profiles'] = profiles
 
@@ -252,6 +251,20 @@ async def getCertainProfile(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         return ConversationHandler.END  # или верни нужное состояние
     return REQUEST
 
+async def getAuthCode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    try:
+        answer = int(update.message.text)
+    except ValueError:
+        await update.message.reply_text(get_translation("number_required", context.user_data.get('language')))
+        return TWO_FACTOR
+    await update.message.reply_text(get_translation('processing_request', context.user_data['language']))
+    try:
+        twoFactorAuth(answer, update.effective_user.id)
+        return await getCertainProfile(update, context)
+    except Exception as e:
+        await update.message.reply_text(f"❌ An error occured: {str(e)}.")
+        return ConversationHandler.END
+
 
 async def process_data_request(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     answer = update.message.text
@@ -273,7 +286,7 @@ async def process_data_request(update: Update, context: ContextTypes.DEFAULT_TYP
             await asyncio.sleep(1)  # Добавляем задержку
             try:
                 # Вызов вашей Selenium-функции
-                dataPage = getUserPage(int(profileNumber)-1, context.user_data['chosen_period'], context.user_data['logs']['username'], context.user_data['logs']['password'])
+                dataPage = getUserPage(int(profileNumber)-1, context.user_data['chosen_period'], session_id=update.effective_user.id)
                 context.user_data['studentInfo'] = getStudentInfo(dataPage)
                 context.user_data['formatedDataArray'] = getFormattedStatistics(dataPage)
                 # Формируем ответ
@@ -337,6 +350,9 @@ def setup_handlers(app: Application):
             ],
             PASSWORD: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, getPassword)
+            ],
+            TWO_FACTOR: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, getAuthCode)
             ],
             REQUEST: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, process_data_request)

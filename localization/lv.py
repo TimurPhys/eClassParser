@@ -43,8 +43,8 @@ translations = {
                        "⏱️ */absenceBorder [skaitlis]* - kritisko kavējumu skaits\n"
                        "   ▸ ❌ vietā ✅ (*noklusējums: 2*)\n\n"
                        "📢 */allowNotifications [0-1]* - paziņojumi par jaunām atzīmēm\n"
-                       "   ▸ 🔕 *0* \- paziņojumi izslēgti\n"
-                       "   ▸ 🔔 *1* \- paziņojumi ieslēgti\n"
+                       "   ▸ 🔕 *0* - paziņojumi izslēgti\n"
+                       "   ▸ 🔔 *1* - paziņojumi ieslēgti\n"
                        "⚙ *Noklusējums:* 🔕 izslēgts(0)\n\n"
                        "🔄 */default* - atiestatīt visus iestatījumus",
 
@@ -136,10 +136,16 @@ translations = {
     "enterValid": "Lūdzu, izvēlieties derīgu vērtību.",
 
     'profile': "Profils",
-    'name': "Vārds",
+    'name': "Rekvizīti",
     'additional_info': "Papildus informācija",
 
     'pass_fail_header': "Ieskaites/Neieskaites priekšmetam",
     'passed': "Ieskaites",
     'failed': "Neiskaites",
+
+    "2FA": "🔐 Nepieciešama divu faktoru autentifikācija!\n"
+        "📲 Lūdzu, ievadiet 5 zīmju kodu no saņemtās SMS.",
+
+    "generate_txt": "📝 Kopīgas statistikas fails",
+    "overall_file": "📄 Tavs kopīgas statistikas fails"
 }

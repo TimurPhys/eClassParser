@@ -44,8 +44,8 @@ translations = {
                        "⏱️ */absenceBorder [number]* - critical absences count\n"
                        "   ▸ ❌ instead of ✅ (*default: 2*)\n\n"
                        "📢 */allowNotifications [0-1]* - notifications about new marks\n"
-                       "   ▸ 🔕 *0* \- notifications off\n"
-                       "   ▸ 🔔 *1* \- notifications on\n"
+                       "   ▸ 🔕 *0* - notifications off\n"
+                       "   ▸ 🔔 *1* - notifications on\n"
                        "⚙ *Default:* 🔕 off(0)\n\n"
                        "🔄 */default* - reset all settings",
 
@@ -143,4 +143,10 @@ translations = {
     'pass_fail_header': "Pass/Fail results for",
     'passed': "Passed",
     'failed': "Failed",
+
+    "2FA": "🔐 Two-factor authentication required!\n"
+        "📲 Please enter the 5-character code from your SMS.",
+
+    "generate_txt": "📝 Overall stats file",
+    "overall_file": "📄 Your overall stats"
 }

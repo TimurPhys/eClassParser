@@ -1,8 +1,4 @@
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, WebDriverException
 import traceback
 import time
@@ -10,44 +6,94 @@ from bs4 import BeautifulSoup
 from localization import get_translation
 from datetime import date
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+import os
+import json
 
+def save_cookies(driver, user_id):
+    cookies = driver.get_cookies()
+
+    os.makedirs("cookies", exist_ok=True)
+    with open(f"cookies/user_{user_id}.json", "w") as file:
+        json.dump(cookies, file)
+
+def load_cookies(user_id):
+    cookie_file = f"cookies/user_{user_id}.json"
+
+    if not os.path.exists(cookie_file):
+        return False
+    with open(cookie_file, "r") as f:
+        return json.load(f)
 
 def init_driver():
-    options = Options()
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")  # Обязательно для Docker
-    options.add_argument("--disable-dev-shm-usage")  # Избегаем проблем с памятью
+    chrome_path = "/usr/bin/google-chrome"
+    chromedriver_path = "/usr/bin/chromedriver"
 
-    driver = webdriver.Chrome(options=options)
-    driver.set_page_load_timeout(30)  # Таймаут 30 секунд
+    # Настройки Chrome
+    chrome_options = Options()
+    chrome_options.binary_location = chrome_path  # Важно!
+    chrome_options.add_argument("--headless=new")
+    chrome_options.add_argument("--no-sandbox")  # Обязательно для Linux без GUI
+    chrome_options.add_argument("--disable-dev-shm-usage")  # Для ограниченной памяти
+    chrome_options.add_argument("--no-first-run")
+    chrome_options.add_argument("--no-default-browser-check")
+    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+
+    # Инициализация драйвера
+    service = Service(executable_path=chromedriver_path)
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    # driver.set_page_load_timeout(30)  # Таймаут 30 секунд
     return driver
-def getProfiles(username, password):
-    driver = init_driver()
+
+drivers = {}
+twoFaAuthorizedUsers = {}
+def getProfiles(username, password, session_id):
     profilesDict = {}
-    wait = WebDriverWait(driver, 30)
-
+    driver = None
+    if not drivers.get(session_id):
+        driver = init_driver()
+        drivers[session_id] = driver
+    else:
+        driver = drivers.get(session_id)
     try:
-        wait.until(EC.url_contains("https://www.e-klase.lv"))
+        if not twoFaAuthorizedUsers.get(session_id):
+            driver.get("https://www.e-klase.lv") # Захожу на сайта е-класса
+            cookies = load_cookies(session_id)
+            if cookies:
+                driver.delete_all_cookies()
+                for cookie in cookies:
+                    if not cookie['domain'].startswith('.'):
+                        if 'e-klase.lv' in cookie['domain']:
+                            cookie['domain'] = '.e-klase.lv'  # Универсальный для всех поддоменов
+                        else:
+                            print(f"Пропускаем cookie для чужого домена: {cookie['domain']}")
+                            continue
+                    try:
+                        driver.add_cookie(cookie)
+                    except Exception as e:
+                        print(f"Ошибка при добавлении cookie {cookie.get('name')}: {str(e)}")
+                driver.refresh()
+            submitButton = driver.find_element(By.CSS_SELECTOR, "button.btn-success[data-btn='submit']") # Нахожу кнопку отправки логов
 
-        submitButton = wait.until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "button.btn-success[data-btn='submit']"))
-        )
-        # submitButton = driver.find_element(By.CSS_SELECTOR, "button.btn-success[data-btn='submit']")
+            driver.execute_script(f"document.getElementsByName('UserName')[0].value = '{username}';") # Нахожу поле ввода логина и ввожу туда логин
+            driver.execute_script(f"document.getElementsByName('Password')[0].value = '{password}';") # Нахожу поле ввода пароль и ввожу туда пароль
+            driver.execute_script("arguments[0].click();", submitButton) # Нажимаю на кнопку отправки логов
 
-        driver.execute_script(f"document.getElementsByName('UserName')[0].value = '{username}';")
-        driver.execute_script(f"document.getElementsByName('Password')[0].value = '{password}';")
-        driver.execute_script("arguments[0].click();", submitButton)
+        time.sleep(2) # Жду пока прогрузится страница
 
-        time.sleep(1)
+        if (driver.current_url == "https://my.e-klase.lv/two-factor-auth/#/view?type=WebLogin"
+                and not twoFaAuthorizedUsers.get(session_id)): # Если мы попали в окно двухфакторной аутентификации, то
+            authButton = driver.find_element(By.XPATH,
+                                             "//*[text()='Nosūtīt SMS ar kodu']")  # Находим кнопку авторизации
+            driver.execute_script("arguments[0].click();", authButton)  # Кликаем по кпопке авторизации
+            return False
 
-        wait.until(EC.url_contains('https://my.e-klase.lv/Family/UserLoginProfile'))
-        print('flag1')
-        wait.until(lambda d: len(d.presence_of_element_located((By.CLASS_NAME, 'modal-options'))) > 0)
-        print('flag2')
+        time.sleep(2) # Ждем 2 секунды, чтобы прогрузилась страничка
+
+        driver.get('https://my.e-klase.lv/Family/UserLoginProfile')
         profilesContainer = driver.find_element(By.CLASS_NAME, 'modal-options')
-        print('flag3')
-        # profilesContainer = driver.find_element(By.CLASS_NAME, 'modal-options')
         all_small_elements = profilesContainer.find_elements(By.CSS_SELECTOR, '.modal-options-choice small')
 
         for i in range(1, len(all_small_elements)+1):
@@ -55,60 +101,79 @@ def getProfiles(username, password):
                 'profileName': profilesContainer.find_elements(By.CLASS_NAME, 'modal-options-title')[i-1].text,
                 'institution': profilesContainer.find_elements(By.CSS_SELECTOR, '.modal-options-choice small')[i-1].text
             }
+        twoFaAuthorizedUsers[session_id] = False
         return profilesDict.copy()
+
     except TimeoutException as e:
         print(f"⏳ TimeoutException: {str(e)}")
         traceback.print_exc()
+        driver.quit()
+        del drivers[session_id]
         return None
 
     except (NoSuchElementException, IndexError, WebDriverException) as e:
         print(f"❌ Ошибка при получении страницы пользователя: {e}")
         traceback.print_exc()
-        return None
-    finally:
         driver.quit()
+        del drivers[session_id]
+        return None
 
-def getUserPage(profileNumber, period, username, password):
-    driver = init_driver()
-    wait = WebDriverWait(driver, 10)
-
+def twoFactorAuth(code, session_id):
+    driver = drivers.get(session_id)
     try:
-        wait.until(EC.url_contains("https://www.e-klase.lv"))
+        otp_input = driver.find_element(By.CSS_SELECTOR, ".OTPInput")  # Находим поле ввода кода
+        otp_input.send_keys(code)  # Вводим полученный код
 
-        submitButton = wait.until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "button.btn-success[data-btn='submit']"))
-        )
+        driver.execute_script("""
+            arguments[0].dispatchEvent(new Event('input', { bubbles: true }));
+            arguments[0].dispatchEvent(new Event('change', { bubbles: true }));
+        """, otp_input)  # Синтаксис для получения события, что значения введены, типа, чтобы кнопка стала активной
+        time.sleep(1)  # Ждем 1 секунду
 
-        driver.execute_script(f"document.getElementsByName('UserName')[0].value = '{username}';")
-        driver.execute_script(f"document.getElementsByName('Password')[0].value = '{password}';")
-        driver.execute_script("arguments[0].click();", submitButton)
+        sendButton = driver.find_element(By.XPATH, "//button[contains(., 'Apstiprināt')]")  # Ищем кнопку отправки кода
+        sendButton.click()  # Отправляем код нажатием кнопки
 
-        time.sleep(1)
+        time.sleep(2)  # Ждем пока прогрузится страница
+        print(driver.page_source)
+        trustButton = driver.find_elements(By.XPATH,
+                                           "//button[.//span[text()=' Uzticēties ierīcei un turpināt ']]")  # Ищем кнопку доверия источнику
 
-        wait.until(EC.url_contains('https://my.e-klase.lv/Family/UserLoginProfile'))
+        if trustButton:  # Проверяем нашлась ли кнопка
+            print("Кнопка доверия источнику найдена!")
+            trustButton[0].click()  # Нажимаем на кпопку
 
-        enterButtons = wait.until(
-            EC.presence_of_all_elements_located((By.NAME, "pf_id"))
-        )
+        twoFaAuthorizedUsers[session_id] = True
+    except Exception as e:
+        print(f"Incorrect entered code: {str(e)}")
+        twoFaAuthorizedUsers[session_id] = False
+        driver.quit()
+        del drivers[session_id]
+        return None
+def getUserPage(profileNumber, period, session_id):
+    driver = drivers.get(session_id)
+    try:
+        driver.get('https://my.e-klase.lv/Family/UserLoginProfile')
+        enterButtons = driver.find_elements(By.NAME, "pf_id")
 
         if profileNumber >= len(enterButtons):
-            raise IndexError("Неверный номер профиля")
+            raise IndexError("Incorrect profile number")
 
         driver.execute_script("arguments[0].click();", enterButtons[profileNumber])
         time.sleep(1)
 
+        save_cookies(driver, session_id)
         today = date.today()
         formatted_date = today.strftime("%d.%m.%Y")
 
         if 1 <= today.month <= 7:
             if period == 1:
-                wait.until(EC.url_contains(f"https://my.e-klase.lv/Family/ReportPupilMarks/Get?SelectedPeriod=01.09.2024.%2331.12.2024.&PeriodStart=03.05.2025.&PeriodEnd=03.05.2025.&IncludeWeightedAverages=true&IncludeNonAttendances=true&IncludePupilBehaviourRecords=true&DiscTypeObligatory=true&DiscTypeObligatory=false&DiscTypeInterest=true&DiscTypeInterest=false&DiscTypeFacultative=true&DiscTypeFacultative=false&DiscTypeExtendedDay=true&DiscTypeExtendedDay=false"))
+                driver.get(f"https://my.e-klase.lv/Family/ReportPupilMarks/Get?SelectedPeriod=01.09.2024.%2331.12.2024.&PeriodStart=03.05.2025.&PeriodEnd=03.05.2025.&IncludeWeightedAverages=true&IncludeNonAttendances=true&IncludePupilBehaviourRecords=true&DiscTypeObligatory=true&DiscTypeObligatory=false&DiscTypeInterest=true&DiscTypeInterest=false&DiscTypeFacultative=true&DiscTypeFacultative=false&DiscTypeExtendedDay=true&DiscTypeExtendedDay=false")
             elif period == 2:
-                wait.until(EC.url_contains(f"https://my.e-klase.lv/Family/ReportPupilMarks/Get?SelectedPeriod=01.01.2025.%23{formatted_date}.&PeriodStart=03.05.2025.&PeriodEnd=03.05.2025.&IncludeWeightedAverages=true&IncludeNonAttendances=true&IncludePupilBehaviourRecords=true&DiscTypeObligatory=true&DiscTypeObligatory=false&DiscTypeInterest=true&DiscTypeInterest=false&DiscTypeFacultative=true&DiscTypeFacultative=false&DiscTypeExtendedDay=true&DiscTypeExtendedDay=false"))
+                driver.get(f"https://my.e-klase.lv/Family/ReportPupilMarks/Get?SelectedPeriod=01.01.2025.%23{formatted_date}.&PeriodStart=03.05.2025.&PeriodEnd=03.05.2025.&IncludeWeightedAverages=true&IncludeNonAttendances=true&IncludePupilBehaviourRecords=true&DiscTypeObligatory=true&DiscTypeObligatory=false&DiscTypeInterest=true&DiscTypeInterest=false&DiscTypeFacultative=true&DiscTypeFacultative=false&DiscTypeExtendedDay=true&DiscTypeExtendedDay=false")
             elif period == 3:
-                wait.until(EC.url_contains("https://my.e-klase.lv/Family/ReportPupilMarks/Get"))
+                driver.get("https://my.e-klase.lv/Family/ReportPupilMarks/Get")
         elif 9 <= today.month <= 12:
-            wait.until(EC.url_contains("https://my.e-klase.lv/Family/ReportPupilMarks/Get"))
+            driver.get("https://my.e-klase.lv/Family/ReportPupilMarks/Get")
 
         time.sleep(1)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -117,15 +182,18 @@ def getUserPage(profileNumber, period, username, password):
     except TimeoutException as e:
         print(f"⏳ TimeoutException: {str(e)}")
         traceback.print_exc()
+        driver.quit()
+        del drivers[session_id]
         return None
 
     except (NoSuchElementException, IndexError, WebDriverException) as e:
         print(f"❌ Ошибка при получении страницы пользователя: {e}")
         traceback.print_exc()
-        return None
-
-    finally:
         driver.quit()
+        del drivers[session_id]
+        return None
+    # finally:
+        # driver.close()
 
 # profiles = getProfiles("070307-20802", "w6naudas")
 #
@@ -142,6 +210,8 @@ def getEachProfileInfo(profiles, lang = "en"):
     return answer
 
 def getStudentInfo(userPage):
+    studentName = None
+    studentsInstitution = None
     infoDiv = userPage.find('div', {"class": "student-selector-option"})
     if infoDiv:
         studentName = infoDiv.find('span', {"class": "name"}).get_text()
@@ -258,69 +328,99 @@ def getFormattedStatistics(userPage):
 
 # statistics = getFormattedStatistics(page)
 
-def getMainMarksStatistics(stats, lang = "en", goodMarkBorder = 5):
+def getMainMarksStatistics(stats, lang = "en", goodMarkBorder = 5, formatted = True):
     answer = ''
     for subject in stats:
         if(subject.mainMarks):
-            value = subject.getAverageMarks()
-            answer += (
-                f'📚 {get_translation("grades_for", lang)} <b>{subject.name}</b>: {", ".join(map(str, subject.mainMarks))}\n'
-                f'⭐ {get_translation("average_grade", lang)}: <b>{value:.2f}</b> {"✅" if value >= goodMarkBorder else "❌"}\n\n')
+            if formatted:
+                value = subject.getAverageMarks()
+                answer += (
+                    f'📚 {get_translation("grades_for", lang)} <b>{subject.name}</b>: {", ".join(map(str, subject.mainMarks))}\n'
+                    f'⭐ {get_translation("average_grade", lang)}: <b>{value:.2f}</b> {"✅" if value >= goodMarkBorder else "❌"}\n\n')
+            else:
+                value = subject.getAverageMarks()
+                answer += (
+                    f'{get_translation("grades_for", lang)} {subject.name}: {", ".join(map(str, subject.mainMarks))}\n'
+                    f'{"✅" if value >= goodMarkBorder else "❌"} {get_translation("average_grade", lang)}: {value:.2f}\n')
     return answer
 
-def getPercentsStatistics(stats, lang = "en", goodPercentBorder = 50):
+def getPercentsStatistics(stats, lang = "en", goodPercentBorder = 50, formatted = True):
     answer = ''
     for subject in stats:
         value = subject.getAveragePercentMarks()
         if (subject.percentMarks):
-            answer += (
-                f'📝 {get_translation("percentage_works_for", lang)} <b>{subject.name}</b>: {", ".join(f"{x}%" for x in subject.percentMarks)}\n'
-                f'📊 {get_translation("average_percentage", lang)}: <b>{value:.2f}%</b> {"✅" if value >= goodPercentBorder else "❌"}\n\n')
+            if formatted:
+                answer += (
+                    f'📝 {get_translation("percentage_works_for", lang)} <b>{subject.name}</b>: {", ".join(f"{x}%" for x in subject.percentMarks)}\n'
+                    f'📊 {get_translation("average_percentage", lang)}: <b>{value:.2f}%</b> {"✅" if value >= goodPercentBorder else "❌"}\n\n')
+            else:
+                answer += (
+                    f'{get_translation("percentage_works_for", lang)} {subject.name}: \n'
+                    f'{"✅" if value >= goodPercentBorder else "❌"} {get_translation("average_percentage", lang)}: {value:.2f}%\n')
     return answer
 
-def getAbsenceStatistics(stats, lang = "en", absenceBorder = 2):
+def getAbsenceStatistics(stats, lang = "en", absenceBorder = 2, formatted = True):
     answer = ''
     flag = True
     for subject in stats:
         if (subject.areThereAnyAbsences()):
             flag = False
-        answer += (f'⏱️ {get_translation("absences_for", lang)} <b>{subject.name}</b>:\n'
-                   f'{"✅" if subject.absences["n"] <= absenceBorder else "❌"} <i>n:</i> <b>{subject.absences["n"]}</b>'
-                   f' || <i>ns:</i> <b>{subject.absences["ns"]}</b> || <i>nc:</i> <b>{subject.absences["nc"]}</b>\n\n')
+        if formatted:
+            answer += (f'⏱️ {get_translation("absences_for", lang)} <b>{subject.name}</b>:\n'
+                       f'{"✅" if subject.absences["n"] <= absenceBorder else "❌"} <i>n:</i> <b>{subject.absences["n"]}</b>'
+                       f' || <i>ns:</i> <b>{subject.absences["ns"]}</b> || <i>nc:</i> <b>{subject.absences["nc"]}</b>\n\n')
+        else:
+            answer += (f'---{get_translation("absences_for", lang)} {subject.name}:\n'
+                       f'{"✅" if subject.absences["n"] <= absenceBorder else "❌"} n: {subject.absences["n"]}'
+                       f' || ns: {subject.absences["ns"]} || nc: {subject.absences["nc"]}\n')
     if flag:
         return get_translation('no_absences_achievement', lang)
     return answer
 
-def getAverageMainScore(stats, dataOnly = False, lang = "en"):
+def getAverageMainScore(stats, dataOnly = False, lang = "en", formatted = True):
     sum_marks = sum(stat.getAverageMarks() for stat in stats if stat.mainMarks)
     new_stats = [i for i in stats if i.mainMarks]
     avg = round(sum_marks / len(new_stats), 2) if new_stats else 0
-    return avg if dataOnly else f"⭐ <i>{get_translation('overall_avg_grade', lang)}:</i> <b>{avg}</b>"
+    if formatted:
+        return avg if dataOnly else f"⭐ <i>{get_translation('overall_avg_grade', lang)}:</i> <b>{avg}</b>"
+    else:
+        return f"{get_translation('overall_avg_grade', lang)}: {avg}"
 
-def getAveragePercentScore(stats, dataOnly = False, lang = "en"):
+def getAveragePercentScore(stats, dataOnly = False, lang = "en", formatted = True):
     sum_percents = sum(stat.getAveragePercentMarks() for stat in stats if stat.percentMarks)
     new_stats = [i for i in stats if i.percentMarks]
     avg = round(sum_percents / len(new_stats), 2) if new_stats else 0
-    return avg if dataOnly else f"📈 <i>{get_translation('overall_avg_percentage', lang)}:</i> <b>{avg}%</b>"
+    if formatted:
+        return avg if dataOnly else f"📈 <i>{get_translation('overall_avg_percentage', lang)}:</i> <b>{avg}%</b>"
+    else:
+        return f"{get_translation('overall_avg_percentage', lang)}: {avg}%"
 
-def getNvStatistics(stats, lang = "en"):
+def getNvStatistics(stats, lang = "en", formatted = True):
     answer = ''
     has_nv = False
     for subject in stats:
         if subject.nvCount:
             has_nv = True
-            answer += f"⚠️ {get_translation('nv_count_for', lang)} <b>{subject.name}</b>: {subject.nvCount}\n\n"
+            if formatted:
+                answer += f"⚠️ {get_translation('nv_count_for', lang)} <b>{subject.name}</b>: {subject.nvCount}\n\n"
+            else:
+                answer += f"{get_translation('nv_count_for', lang)} {subject.name}: {subject.nvCount}\n"
     return answer if has_nv else f"🎉 <b>{get_translation('no_nv', lang)}</b>"
 
-def getPassesStatistics(stats, lang = "en"):
+def getPassesStatistics(stats, lang = "en", formatted = True):
     answer = ''
     flag = True
     for subject in stats:
         if subject.passes or subject.notPasses:
-            answer += (f"{get_translation('pass_fail_header', lang)} <b>{subject.name}</b>:\n"
-                        f"✅<b>{get_translation('passed', lang)}</b>: {subject.passes}\n"
-                        f"❌<b>{get_translation('failed', lang)}</b>: {subject.notPasses}\n\n")
             flag = False
+            if formatted:
+                answer += (f"{get_translation('pass_fail_header', lang)} <b>{subject.name}</b>:\n"
+                            f"✅<b>{get_translation('passed', lang)}</b>: {subject.passes}\n"
+                            f"❌<b>{get_translation('failed', lang)}</b>: {subject.notPasses}\n\n")
+            else:
+                answer += (f"{get_translation('pass_fail_header', lang)} {subject.name}:\n"
+                           f"✅{get_translation('passed', lang)}: {subject.passes}\n"
+                           f"❌{get_translation('failed', lang)}: {subject.notPasses}\n")
     if flag:
         return False
     return answer
