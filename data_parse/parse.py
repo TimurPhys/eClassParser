@@ -27,19 +27,18 @@ def load_cookies(user_id):
         return json.load(f)
 
 def init_driver():
-    chrome_path = "/usr/bin/google-chrome"
+    # chromium_path = "/snap/bin/chromium"
     chromedriver_path = "/usr/bin/chromedriver"
 
     # Настройки Chrome
     chrome_options = Options()
-    chrome_options.binary_location = chrome_path  # Важно!
     chrome_options.add_argument("--headless=new")
-    chrome_options.add_argument("--no-sandbox")  # Обязательно для Linux без GUI
-    chrome_options.add_argument("--disable-dev-shm-usage")  # Для ограниченной памяти
-    chrome_options.add_argument("--no-first-run")
-    chrome_options.add_argument("--no-default-browser-check")
-    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--remote-debugging-port=9222")
+    # chrome_options.add_argument("--no-first-run")
+    # chrome_options.add_argument("--no-default-browser-check")
+    # chrome_options.add_argument("--disable-blink-features=AutomationControlled")
 
     # Инициализация драйвера
     service = Service(executable_path=chromedriver_path)
