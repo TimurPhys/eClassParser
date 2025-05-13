@@ -6,7 +6,7 @@ from localization import get_translation
 
 async def period_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if context.user_data.get('expired'):
-        await update.message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
+        await update.effective_message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
     if context.args:
         value = context.args[0]
@@ -31,7 +31,7 @@ async def period_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def good_mark_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if context.user_data.get('expired'):
-        await update.message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
+        await update.effective_message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
     if context.args:
         try:
@@ -62,7 +62,7 @@ async def good_mark_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def good_percent_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if context.user_data.get('expired'):
-        await update.message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
+        await update.effective_message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
     if context.args:
         try:
@@ -93,7 +93,7 @@ async def good_percent_handler(update: Update, context: ContextTypes.DEFAULT_TYP
     return SETTINGS
 async def absence_border(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if context.user_data.get('expired'):
-        await update.message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
+        await update.effective_message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
     if context.args:
         try:
@@ -124,7 +124,7 @@ async def absence_border(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def set_other_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if context.user_data.get('expired'):
-        await update.message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
+        await update.effective_message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
     if context.args:
         value = context.args[0]
@@ -148,7 +148,7 @@ async def set_other_language(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def allow_notifications(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if context.user_data.get('expired'):
-        await update.message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
+        await update.effective_message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
     if context.args:
         try:

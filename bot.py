@@ -1,5 +1,6 @@
 from telegram.ext import Application
 from handlers.conv_chain import setup_handlers, start_commands
+from data_parse.parse import init_db
 
 TOKEN = "8011583878:AAFAeLhqtM2meK8GM88y_lYLX97Pmx8kJgQ"
 
@@ -19,4 +20,5 @@ def main() -> None:
     application.run_polling()
 
 if __name__ == '__main__':
+    init_db()
     main()

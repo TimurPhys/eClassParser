@@ -95,7 +95,7 @@ def get_stats_keyboard(language: str = "en", dataArray: list = []) -> InlineKeyb
 
 async def handle_button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if context.user_data.get('expired'):
-        await update.message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
+        await update.effective_message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
     query = update.callback_query
     await query.answer()

@@ -15,7 +15,7 @@ from telegram.ext import (
     JobQueue
 )
 import asyncio
-from data_parse.parse import getProfiles, getUserPage, getStudentInfo, getEachProfileInfo, getFormattedStatistics, twoFactorAuth
+from data_parse.parse import getProfiles, getUserPage, getStudentInfo, getEachProfileInfo, getFormattedStatistics, twoFactorAuth, init_db
 from handlers.analysis_commands import handle_button_click
 from localization import get_translation
 from handlers.analysis_commands import get_stats_keyboard
@@ -122,7 +122,7 @@ async def setLanguage(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
 
 async def beginWork(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if context.user_data.get('expired'):
-        await update.message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
+        await update.effective_message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
     await update.message.reply_text(
         get_translation('greeting', context.user_data['language']), parse_mode="Markdown" ,
@@ -137,7 +137,7 @@ async def beginWork(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def getChoice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if context.user_data.get('expired'):
-        await update.message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
+        await update.effective_message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
     """Получаем персональный код"""
     choice = update.message.text
@@ -160,7 +160,7 @@ async def getChoice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def getAutoChoice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if context.user_data.get('expired'):
-        await update.message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
+        await update.effective_message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
     choice = update.message.text
     if (choice == get_translation('YesOrNo', context.user_data['language']).get('yes')):
@@ -172,7 +172,7 @@ async def getAutoChoice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 
 async def getUsername(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if context.user_data.get('expired'):
-        await update.message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
+        await update.effective_message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
     """Получаем персональный код"""
     context.user_data["logs"]["username"] = update.message.text
@@ -182,7 +182,7 @@ async def getUsername(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
 
 async def getPassword(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if context.user_data.get('expired'):
-        await update.message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
+        await update.effective_message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
     """Получаем пароль"""
     context.user_data["logs"]["password"] = update.message.text
@@ -199,12 +199,12 @@ async def getPassword(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
 
 async def getData(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if context.user_data.get('expired'):
-        await update.message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
+        await update.effective_message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
     """Делаем запрос на сервер"""
     answer = update.message.text
     if(answer == get_translation('YesOrNo', context.user_data['language']).get('yes')):
-        await update.message.reply_text(get_translation('processing_request', context.user_data['language']))
+        await update.message.reply_text(get_translation('processing_request', context.user_data['language']), reply_markup=ReplyKeyboardRemove())
         return await getCertainProfile(update, context)
     elif(answer == get_translation('YesOrNo', context.user_data['language']).get('no')):
         await update.message.reply_text(get_translation('refusement', context.user_data['language']), reply_markup=ReplyKeyboardRemove())
@@ -216,7 +216,7 @@ async def getData(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def getCertainProfile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if context.user_data.get('expired'):
-        await update.message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
+        await update.effective_message.reply_text("⏳ Session is over, because of inactivity(10 minutes). Enter /start to continue.", reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
 
     try:

@@ -9,26 +9,68 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 import os
+import pickle
+import sqlite3
 import json
 
-def save_cookies(driver, user_id):
-    cookies = driver.get_cookies()
+def init_db():
+    conn = sqlite3.connect("cookies_db.sqlite")
+    cursor = conn.cursor()
+    cursor.execute("""
+            CREATE TABLE IF NOT EXISTS cookies (
+                user_id INTEGER PRIMARY KEY,
+                cookies_data BLOB
+            )
+        """)
+    conn.commit()
+    conn.close()
 
-    os.makedirs("cookies", exist_ok=True)
-    with open(f"cookies/user_{user_id}.json", "w") as file:
-        json.dump(cookies, file)
+def save_cookies(user_id, driver):
+    cookies = driver.get_cookies()
+    conn = sqlite3.connect("cookies_db.sqlite")
+    cursor = conn.cursor()
+
+    # Сериализуем cookies в бинарный формат (используем pickle)
+    cookies_binary = pickle.dumps(cookies)
+
+    cursor.execute(
+        "INSERT OR REPLACE INTO cookies (user_id, cookies_data) VALUES (?, ?)",
+        (user_id, cookies_binary)
+    )
+    conn.commit()
+    conn.close()
 
 def load_cookies(user_id):
-    cookie_file = f"cookies/user_{user_id}.json"
+    conn = sqlite3.connect("cookies_db.sqlite")
+    cursor = conn.cursor()
 
-    if not os.path.exists(cookie_file):
-        return False
-    with open(cookie_file, "r") as f:
-        return json.load(f)
+    cursor.execute("SELECT cookies_data FROM cookies WHERE user_id = ?", (user_id,))
+    data = cursor.fetchone()
+    conn.close()
+
+    if data:
+        return pickle.loads(data[0])  # Десериализуем cookies
+    return None
+
+
+# def save_cookies(user_id, driver):
+#     cookies = driver.get_cookies()
+#
+#     os.makedirs("cookies", exist_ok=True)
+#     with open(f"cookies/user_{user_id}.json", "w") as file:
+#         json.dump(cookies, file)
+#
+# def load_cookies(user_id):
+#     cookie_file = f"cookies/user_{user_id}.json"
+#
+#     if not os.path.exists(cookie_file):
+#         return False
+#     with open(cookie_file, "r") as f:
+#         return json.load(f)
 
 def init_driver():
     # chromium_path = "/snap/bin/chromium"
-    chromedriver_path = "/usr/bin/chromedriver"
+    chromedriver_path = "/usr/local/bin/chromedriver"
 
     # Настройки Chrome
     chrome_options = Options()
@@ -160,7 +202,7 @@ def getUserPage(profileNumber, period, session_id):
         driver.execute_script("arguments[0].click();", enterButtons[profileNumber])
         time.sleep(1)
 
-        save_cookies(driver, session_id)
+        save_cookies(session_id, driver)
         today = date.today()
         formatted_date = today.strftime("%d.%m.%Y")
 
