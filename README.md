@@ -24,4 +24,6 @@ you will be given a code of error, eventually the best way how to escape it is b
 
 Usually such errors are connected with browser and problems with browser driver that can be easilly fixed by making another request.
 
+![Examples]()
+
 ## Use my bot with convenience:)
