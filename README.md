@@ -24,7 +24,7 @@ you will be given a code of error, eventually the best way how to escape it is b
 
 Usually such errors are connected with browser and problems with browser driver that can be easilly fixed by making another request.
 
-<div style="display: flex; gap: 10px; margin-bottom: 10px;">
+<div style="display: flex; gap: 10px; margin-bottom: 10px; justify-content: center;">
     <img src="/examples_photo/1.png" width="250" alt="1">
     <img src="/examples_photo/2.png" width="250" alt="2">
     <img src="/examples_photo/3.png" width="250" alt="3">
