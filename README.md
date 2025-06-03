@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # **Small Description**
 
 This bot parses data from a well-known electronic diary "E-Class" in Latvia for **_scholars and
@@ -26,7 +25,7 @@ you will be given a code of error, eventually the best way how to escape it is b
 Usually such errors are connected with browser and problems with browser driver that can be easilly fixed by making another request.
 
 ## Use my bot with convenience:)
-=======
+
 Hello to everyone who reads this!
 
 Small Description:
@@ -39,4 +38,3 @@ Well, if the online request didn't finish succesfully you will be given a code o
 only connected with browser and problems with browser driver that can be easilly fixed by making another request.
 
 Use my bot with convenience:)
->>>>>>> 06d793428de57d4bf4a7477dbbc57004adb6f5a6
