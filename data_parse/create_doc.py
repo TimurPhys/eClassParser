@@ -18,9 +18,9 @@ async def make_overall_stats_doc(update: Update, context: ContextTypes.DEFAULT_T
             f"Student: {context.user_data.get('studentInfo')[0]}\n"
             f"Institution and grade: {context.user_data.get('studentInfo')[1]}\n\n"
             f"-----Criterias-----\n"
-            f"GoodMarkBorder: {context.user_data.get("good_mark")}\n"
-            f"GoodPercentBorder: {context.user_data.get("good_percent_mark")}\n"
-            f"AbsenceBorder: {context.user_data.get("absence_border")}\n\n"
+            f"GoodMarkBorder: {context.user_data.get('good_mark')}\n"
+            f"GoodPercentBorder: {context.user_data.get('good_percent_mark')}\n"
+            f"AbsenceBorder: {context.user_data.get('absence_border')}\n\n"
             f"-----Statistics-----\n")
             if getAverageMainScore(stats, dataOnly=True) != 0.0:
                   answer += (f"!!!{getAverageMainScore(stats, lang=context.user_data.get('language'), formatted=False)}\n"
