@@ -24,6 +24,8 @@ you will be given a code of error, eventually the best way how to escape it is b
 
 Usually such errors are connected with browser and problems with browser driver that can be easilly fixed by making another request.
 
-![Examples]()
+![Examples](/examples_photo/1.png)
+![Examples](/examples_photo/2.png)
+![Examples](/examples_photo/3.png)
 
 ## Use my bot with convenience:)
