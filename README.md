@@ -24,8 +24,10 @@ you will be given a code of error, eventually the best way how to escape it is b
 
 Usually such errors are connected with browser and problems with browser driver that can be easilly fixed by making another request.
 
-![Examples](/examples_photo/1.png)
-![Examples](/examples_photo/2.png)
-![Examples](/examples_photo/3.png)
+<div style="display: flex; gap: 10px; margin-bottom: 10px;">
+    <img src="/examples_photo/1.png" width="300" alt="1">
+    <img src="/examples_photo/2.png" width="300" alt="2">
+</div>
+<img src="/examples_photo/3.png" width="300" alt="3">
 
-## Use my bot with convenience:)
+##### Use my bot with convenience:)
