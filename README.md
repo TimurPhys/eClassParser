@@ -27,7 +27,7 @@ Usually such errors are connected with browser and problems with browser driver 
 <div style="display: flex; gap: 10px; margin-bottom: 10px;">
     <img src="/examples_photo/1.png" width="300" alt="1">
     <img src="/examples_photo/2.png" width="300" alt="2">
-</div>
 <img src="/examples_photo/3.png" width="300" alt="3">
+</div>
 
 ##### Use my bot with convenience:)
